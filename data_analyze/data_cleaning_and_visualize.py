@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 19 17:27:31 2019
+
+@author: lenovo
+"""
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,7 +50,7 @@ plt.show()
 
 #删除价格￥150以上，评论数700以上的数据
 data2=data1[data['price']<150]
-data3=data2[data2['comnum']<700]
+data3=data2[data2['comnum']<150]
 
 ##################################
 
@@ -113,8 +119,11 @@ for j in data3['price']:
         k += 1
 
 data_latest = data_latest[data_latest[:,0]>0]
+
+# 这里是很关键的一步，当当网不公布月销量，这里我假设需求量与评论数呈现一个简单的线性正相关关系
+t = 2.2
 price = data_latest[ : , 0 ]
-comnum = data_latest[ : , 1 ]
+comnum = data_latest[ : , 1 ]*t
 
 ##################################
 
@@ -133,15 +142,9 @@ def projection(A,b):
     w=np.linalg.inv(AA).dot(A.T).dot(b)
 
 #    拟合函数原型 f(x) = ax^3 + bx^2 + cx^1 + dx^0
-    print(w) 
-#    d = [4.25266168e+01]
-#    c = [1.16898193e-02]
-#    b = [8.35253350e-05]
-#    a = [7.31648548e-07]
-    
-    return A.dot(w)
+    return w
 
-Price = projection(A,b)
+Price = A.dot( projection(A,b) )
 Price.shape = (Price.shape[0],)
 plt.plot(comnum,price,color='m',linestyle='',marker='o',label=u"已知数据点")
 plt.plot(comnum,Price,color='b',linestyle='',marker='.',label=u"拟合曲线")
@@ -150,12 +153,12 @@ plt.show()
 ##################################
 
 # 拟合曲线一阶导数
-
-x0 = np.linspace(0, 250)
-d = 6.80428042e+01
-c = -3.56967512e-02
-b = -4.91380178e-04
-a = -9.55391867e-06
+w = projection(A,b)
+x0 = np.linspace(0, 150*t)
+d = w[0]
+c = w[1]
+b = w[2]
+a = w[3]
 
 # 拟合函数
 def y0(x):    
@@ -176,7 +179,6 @@ plt.plot(x0, y0(x0), 'b', linewidth = 1, label = "f(x)")
 plt.show()
 
 # 绘制拟合函数一阶导数
-plt.ylim((-2.2e0,-1e-3))
 plt.plot(x0, y1(x0), 'g', linewidth = 1, label = "f'(x)")
 plt.show()
 
@@ -204,3 +206,4 @@ for x in range(1,255):
 
             
     
+
